@@ -24,7 +24,7 @@ class GraphConvolution(nn.Module):
         stdv = 1. / math.sqrt(self.out_features)
         self.weight.data.uniform_(-stdv, stdv)
 
-    def forward(self, input, adj , h0 , lamda, alpha, l):
+    def forward(self, input, adj , h0 , lamda, alpha, l, drop_rate=0.5, drop_mask=None):
         theta = math.log(lamda/l+1)
         hi = torch.spmm(adj, input)
         if self.variant:
@@ -33,7 +33,11 @@ class GraphConvolution(nn.Module):
         else:
             support = (1-alpha)*hi+alpha*h0
             r = support
-        output = theta*torch.mm(support, self.weight)+(1-theta)*r
+        cur_layer_learner = torch.mm(support, self.weight)
+        if drop_mask is None:
+            output = theta*cur_layer_learner+(1-theta)*r
+        else:
+            output = drop_mask * theta * cur_layer_learner/(1.0-drop_rate) + (1-theta) * r
         if self.residual:
             output = output+input
         return output
@@ -61,7 +65,14 @@ class GCNII(nn.Module):
         _layers.append(layer_inner)
         for i,con in enumerate(self.convs):
             layer_inner = F.dropout(layer_inner, self.dropout, training=self.training)
-            layer_inner = self.act_fn(con(layer_inner,adj,_layers[0],self.lamda,self.alpha,i+1))
+            if self.training:
+                nodes_num = x.shape[0]
+                drop_rate = 0.6
+                drop_rates = torch.FloatTensor(np.ones(nodes_num) * drop_rate)
+                masks = torch.bernoulli(1. - drop_rates).unsqueeze(1)
+                layer_inner = self.act_fn(con(layer_inner,adj,_layers[0],self.lamda,self.alpha,i+1,drop_rate,masks))
+            else:
+                layer_inner = self.act_fn(con(layer_inner,adj,_layers[0],self.lamda,self.alpha,i+1))
         layer_inner = F.dropout(layer_inner, self.dropout, training=self.training)
         layer_inner = self.fcs[-1](layer_inner)
         return F.log_softmax(layer_inner, dim=1)

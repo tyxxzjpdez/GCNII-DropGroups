@@ -36,7 +36,7 @@ torch.cuda.manual_seed(args.seed)
 
 # Load data
 adj, features, labels,idx_train,idx_val,idx_test = load_citation(args.data)
-cudaid = "cuda:"+str(args.dev)
+cudaid = "cpu"
 device = torch.device(cudaid)
 features = features.to(device)
 adj = adj.to(device)
