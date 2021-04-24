@@ -1,4 +1,4 @@
-python -u train.py --data cora --layer 16 --seed 32322 --test
+python -u train.py --dropnode_rate 0.7 --data cora --layer 16 --seed 54321 --test
 # python -u train.py --data cora --layer 64 --variant --test
 # python -u train.py --data citeseer --layer 32 --hidden 256 --lamda 0.6 --dropout 0.7 --test
 # python -u train.py --data citeseer --layer 32 --hidden 256 --lamda 0.6 --dropout 0.7 --variant --test

@@ -28,6 +28,7 @@ parser.add_argument('--alpha', type=float, default=0.1, help='alpha_l')
 parser.add_argument('--lamda', type=float, default=0.5, help='lamda.')
 parser.add_argument('--variant', action='store_true', default=False, help='GCN* model.')
 parser.add_argument('--test', action='store_true', default=False, help='evaluation on test set.')
+parser.add_argument('--dropnode_rate', type=float, default=0.5, help='dropnode_rate')
 args = parser.parse_args()
 random.seed(args.seed)
 np.random.seed(args.seed)
@@ -50,7 +51,8 @@ model = GCNII(nfeat=features.shape[1],
                 dropout=args.dropout,
                 lamda = args.lamda, 
                 alpha=args.alpha,
-                variant=args.variant).to(device)
+                variant=args.variant,
+                dropnode_rate=args.dropnode_rate).to(device)
 
 optimizer = optim.Adam([
                         {'params':model.params1,'weight_decay':args.wd1},
