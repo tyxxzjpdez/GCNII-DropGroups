@@ -37,7 +37,7 @@ torch.cuda.manual_seed(args.seed)
 
 # Load data
 adj, features, labels,idx_train,idx_val,idx_test = load_citation(args.data)
-cudaid = "cpu"
+cudaid = "cuda:"+str(args.dev)
 device = torch.device(cudaid)
 features = features.to(device)
 adj = adj.to(device)
@@ -52,7 +52,8 @@ model = GCNII(nfeat=features.shape[1],
                 lamda = args.lamda, 
                 alpha=args.alpha,
                 variant=args.variant,
-                dropnode_rate=args.dropnode_rate).to(device)
+                dropnode_rate=args.dropnode_rate,
+                device=device).to(device)
 
 optimizer = optim.Adam([
                         {'params':model.params1,'weight_decay':args.wd1},

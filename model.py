@@ -43,7 +43,7 @@ class GraphConvolution(nn.Module):
         return output
 
 class GCNII(nn.Module):
-    def __init__(self, nfeat, nlayers,nhidden, nclass, dropout, lamda, alpha, variant, dropnode_rate):
+    def __init__(self, nfeat, nlayers,nhidden, nclass, dropout, lamda, alpha, variant, dropnode_rate, device):
         super(GCNII, self).__init__()
         self.convs = nn.ModuleList()
         for _ in range(nlayers):
@@ -58,6 +58,7 @@ class GCNII(nn.Module):
         self.alpha = alpha
         self.lamda = lamda
         self.dropnode_rate = dropnode_rate
+        self.device = device
 
     def forward(self, x, adj):
         _layers = []
@@ -70,7 +71,7 @@ class GCNII(nn.Module):
                 nodes_num = x.shape[0]
                 drop_rate = self.dropnode_rate
                 drop_rates = torch.FloatTensor(np.ones(nodes_num) * drop_rate)
-                masks = torch.bernoulli(1. - drop_rates).unsqueeze(1)
+                masks = torch.bernoulli(1. - drop_rates).unsqueeze(1).to(self.device)
                 layer_inner = self.act_fn(con(layer_inner,adj,_layers[0],self.lamda,self.alpha,i+1,drop_rate,masks))
             else:
                 layer_inner = self.act_fn(con(layer_inner,adj,_layers[0],self.lamda,self.alpha,i+1))
